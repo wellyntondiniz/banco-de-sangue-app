@@ -4,8 +4,35 @@ import { StyleSheet } from 'react-native';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { deletarDoador, Doador, listarDoadores } from '@/service/doador.service';
+import { Button } from '@react-navigation/elements';
+import { useCallback, useEffect, useState } from 'react';
 
 export default function HomeScreen() {
+  
+  const [listaDoadores, setDoadores] = useState<Doador[]>([]);
+
+  async function deletar(id) {
+      await Promise.all([deletarDoador(id)]);
+      carregar();
+  }
+
+  const carregar = useCallback(async () => {
+    try {
+      const [doadores] = await Promise.all([listarDoadores()]);
+      setDoadores(doadores ?? [])
+    } catch (e: any) {
+      // setError(e?.message ?? 'Erro ao carregar dados');
+    } finally {
+  
+    }
+  }, []);
+  
+
+  useEffect(() => {
+      carregar();
+    }, [carregar]);
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
@@ -19,9 +46,16 @@ export default function HomeScreen() {
         <ThemedText type="title">Doadores</ThemedText>
       </ThemedView>
       
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-      </ThemedView>
+        {listaDoadores.map((item) => (
+          <ThemedView key={item.id} style={styles.stepContainer}>
+            <ThemedText type="defaultSemiBold">{item.id}</ThemedText>
+            <ThemedText type="default">{item.nome}</ThemedText>
+            <Button 
+              title="Ação"               
+              onPress={() => deletar(item.id)} 
+            />
+          </ThemedView>
+        ))}
     </ParallaxScrollView>
   );
 }
